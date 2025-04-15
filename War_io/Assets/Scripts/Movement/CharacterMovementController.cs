@@ -1,4 +1,5 @@
-﻿using UnityEditor.Experimental.GraphView;
+﻿using Assets.Scripts.Boosts;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -12,13 +13,15 @@ namespace War_io.Movement
         [SerializeField]
         private float _speed = 10f;
         [SerializeField]
-        private float _speedBoostCoefficient = 1.5f;
+        private float _sprintSpeedBoostCoefficient = 1.5f;
         [SerializeField]
         private float _maxRadiansDelta = 10f;
 
         public Vector3 MovemantDirection { get; set; }
         public Vector3 LookDirection { get; set; }
 
+        private float _speedBoostDuration = 0;
+        private float _speedBoostCoefficient;
 
         private CharacterController _characterController;
 
@@ -29,24 +32,28 @@ namespace War_io.Movement
 
         void Update()
         {
-            Translate();
+            var speed = _speed;
+
+            if (_speedBoostDuration > 0)
+            {
+                speed *= _speedBoostCoefficient;
+                _speedBoostDuration -= Time.deltaTime;
+            }
+            if (Input.GetKey(KeyCode.Space))
+                speed *= _sprintSpeedBoostCoefficient;
+
+            Translate(speed);
 
             if (_maxRadiansDelta > 0 && LookDirection != Vector3.zero)
                 Rotate();
         }
 
-        private void Translate()
+
+
+        private void Translate(float speed)
         {
-            if (Input.GetKey(KeyCode.Space))
-            {
-                var delta = MovemantDirection * (_speed * _speedBoostCoefficient) * Time.deltaTime;
-                _characterController.Move(delta);
-            }
-            else
-            {
-                var delta = MovemantDirection * _speed * Time.deltaTime;
-                _characterController.Move(delta);
-            }
+            var delta = MovemantDirection * speed * Time.deltaTime;
+            _characterController.Move(delta);
         }
 
         private void Rotate()
@@ -60,6 +67,12 @@ namespace War_io.Movement
 
                 transform.rotation = newRotation;
             }
+        }
+
+        public void SetSpeedBoost(float duration, float speedBoostCoefficient)
+        {
+            _speedBoostDuration = duration;
+            _speedBoostCoefficient = speedBoostCoefficient;
         }
     }
 }

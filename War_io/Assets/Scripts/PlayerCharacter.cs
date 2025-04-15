@@ -7,6 +7,6 @@ namespace War_io
     [RequireComponent(typeof(PlayerMovementDirectionController))]
     public class PlayerCharacter : BaseCharacter
     {
-        
+
     }
 }

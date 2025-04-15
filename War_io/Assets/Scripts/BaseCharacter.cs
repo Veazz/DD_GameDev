@@ -1,11 +1,12 @@
 using UnityEngine;
 using War_io.Movement;
+using War_io.PickUp;
 using War_io.Shooting;
 
 namespace War_io
 {
     [RequireComponent(typeof(CharacterMovementController), typeof(ShootingController))]
-    public class BaseCharacter : MonoBehaviour
+    public abstract class BaseCharacter : MonoBehaviour
     {
         [SerializeField]
         private Weapons _baseWeaponPrefab;
@@ -17,7 +18,6 @@ namespace War_io
         private float _health = 10f;
 
         private IMovementDirectionSource _movementDirectionSource;
-        
         private CharacterMovementController _characterMovementController;
         private ShootingController _shootingController;
 
@@ -30,7 +30,7 @@ namespace War_io
 
         protected void Start()
         {
-            _shootingController.SetWeapon(_baseWeaponPrefab, _hand);
+            SetWeapon(_baseWeaponPrefab);
         }
 
         protected void Update()
@@ -57,6 +57,33 @@ namespace War_io
                 _health -= bullet.Damage;
                 Destroy(other.gameObject);
             }
+            else if(LayerUtils.IsWeaponPickUp(other.gameObject))
+            {
+                var weapon = other.gameObject.GetComponent<PickUpWeapon>();
+                weapon.OnPickedUp(this);
+
+                Destroy(other.gameObject);
+                
+            }
+            else if (LayerUtils.IsBoostPickUp(other.gameObject))
+            {
+                var boost = other.gameObject.GetComponent<PickUpBoost>();
+                boost.OnPickedUp(this);
+
+                Destroy(other.gameObject);
+
+            }
+        }
+
+
+        public void SetWeapon(Weapons weapon)
+        {
+            _shootingController.SetWeapon(weapon, _hand);
+        }
+
+        public void SpeedBoosting(float duration,  float speedBoostCoefficient)
+        {
+            _characterMovementController.SetSpeedBoost(duration, speedBoostCoefficient);
         }
     }
 }
